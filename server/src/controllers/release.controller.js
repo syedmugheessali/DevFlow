@@ -1,7 +1,18 @@
+const { validationResult } = require('express-validator');
 const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/AppError');
 const releaseService = require('../services/release.service');
 
+function handleValidation(req) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const messages = errors.array().map((e) => e.msg);
+    throw AppError.badRequest(messages.join('. '), 'VALIDATION_ERROR');
+  }
+}
+
 exports.create = catchAsync(async (req, res) => {
+  handleValidation(req);
   const release = await releaseService.createRelease(
     req.params.projectId,
     req.body.workspace || req.params.workspaceId,
@@ -20,6 +31,7 @@ exports.getAll = catchAsync(async (req, res) => {
 });
 
 exports.update = catchAsync(async (req, res) => {
+  handleValidation(req);
   const release = await releaseService.updateRelease(
     req.params.releaseId,
     req.body,

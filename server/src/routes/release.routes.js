@@ -1,19 +1,17 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true });
 const releaseController = require('../controllers/release.controller');
-const { protect } = require('../middleware/auth');
-const { authorizeWorkspaceMember } = require('../middleware/authorize');
+const { authenticate } = require('../middleware/auth');
+const { requireWorkspaceMember } = require('../middleware/authorize');
 
-router.use(protect);
-router.use(authorizeWorkspaceMember);
+router.use(authenticate);
+router.use(requireWorkspaceMember());
 
 router.route('/')
-  .post(releaseController.createRelease)
-  .get(releaseController.getProjectReleases);
+  .post(releaseController.create)
+  .get(releaseController.getAll);
 
 router.route('/:releaseId')
-  .get(releaseController.getRelease)
-  .patch(releaseController.updateRelease)
-  .delete(releaseController.deleteRelease);
+  .patch(releaseController.update);
 
 module.exports = router;

@@ -10,6 +10,7 @@ const logger = require('./utils/logger');
 const errorHandler = require('./middleware/errorHandler');
 const AppError = require('./utils/AppError');
 const { initializeSocket } = require('./config/socket');
+const rateLimit = require('express-rate-limit');
 
 // Route imports
 const authRoutes = require('./routes/auth.routes');
@@ -31,6 +32,23 @@ initializeSocket(server);
 
 // Security headers
 app.use(helmet());
+
+// Rate Limiting (100 requests per 15 minutes per IP)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 100, 
+  standardHeaders: true, 
+  legacyHeaders: false, 
+  message: { success: false, message: 'Too many requests, please try again later.' }
+});
+
+// Apply rate limiter to all /api routes except webhooks which need high throughput
+app.use('/api/', (req, res, next) => {
+  if (req.path.startsWith('/webhooks')) {
+    return next();
+  }
+  return limiter(req, res, next);
+});
 
 // CORS
 app.use(cors({

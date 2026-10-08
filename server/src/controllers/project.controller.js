@@ -1,8 +1,19 @@
+const { validationResult } = require('express-validator');
 const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/AppError');
 const projectService = require('../services/project.service');
 const issueService = require('../services/issue.service');
 
+function handleValidation(req) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const messages = errors.array().map((e) => e.msg);
+    throw AppError.badRequest(messages.join('. '), 'VALIDATION_ERROR');
+  }
+}
+
 exports.create = catchAsync(async (req, res) => {
+  handleValidation(req);
   const project = await projectService.createProject(
     req.params.workspaceId,
     req.user._id,
@@ -25,6 +36,7 @@ exports.getById = catchAsync(async (req, res) => {
 });
 
 exports.update = catchAsync(async (req, res) => {
+  handleValidation(req);
   const project = await projectService.updateProject(
     req.params.projectId,
     req.body,

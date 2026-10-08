@@ -1,7 +1,18 @@
+const { validationResult } = require('express-validator');
 const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/AppError');
 const workspaceService = require('../services/workspace.service');
 
+function handleValidation(req) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const messages = errors.array().map((e) => e.msg);
+    throw AppError.badRequest(messages.join('. '), 'VALIDATION_ERROR');
+  }
+}
+
 exports.create = catchAsync(async (req, res) => {
+  handleValidation(req);
   const workspace = await workspaceService.createWorkspace(req.user._id, req.body);
   res.status(201).json({ success: true, data: { workspace } });
 });
@@ -17,11 +28,13 @@ exports.getById = catchAsync(async (req, res) => {
 });
 
 exports.update = catchAsync(async (req, res) => {
+  handleValidation(req);
   const workspace = await workspaceService.updateWorkspace(req.params.workspaceId, req.body);
   res.json({ success: true, data: { workspace } });
 });
 
 exports.addMember = catchAsync(async (req, res) => {
+  handleValidation(req);
   const workspace = await workspaceService.addMember(
     req.params.workspaceId,
     req.body,
@@ -40,6 +53,7 @@ exports.removeMember = catchAsync(async (req, res) => {
 });
 
 exports.updateMemberRole = catchAsync(async (req, res) => {
+  handleValidation(req);
   const workspace = await workspaceService.updateMemberRole(
     req.params.workspaceId,
     req.params.memberId,

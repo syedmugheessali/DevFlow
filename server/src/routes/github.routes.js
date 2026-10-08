@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true });
 const githubController = require('../controllers/github.controller');
-const { protect } = require('../middleware/auth');
-const { authorizeWorkspaceMember } = require('../middleware/authorize');
+const { authenticate } = require('../middleware/auth');
+const { requireWorkspaceMember } = require('../middleware/authorize');
 
-router.use(protect);
-router.use(authorizeWorkspaceMember);
+router.use(authenticate);
+router.use(requireWorkspaceMember());
 
 router.post('/connect', githubController.connectRepository);
 router.delete('/disconnect', githubController.disconnectRepository);

@@ -37,11 +37,13 @@ exports.handleGitHub = async (req, res) => {
     logger.info(`Processing webhook: ${eventType} (${deliveryId})`);
 
     // Process asynchronously — respond to GitHub quickly
-    const result = await webhookService.processWebhook(deliveryId, eventType, payload);
+    webhookService.processWebhook(deliveryId, eventType, payload).catch(err => {
+      logger.error(`Webhook processing failed for ${deliveryId}:`, err);
+    });
 
-    res.status(200).json({
+    res.status(202).json({
       success: true,
-      data: result,
+      message: 'Webhook received and processing started',
     });
   } catch (error) {
     logger.error('Webhook processing error:', error.message);
